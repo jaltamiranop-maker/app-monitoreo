@@ -104,12 +104,42 @@ with col_table:
                     data = response.json()
                     st.success("✅ Optimización completada con éxito")
                     
-                    # Mostrar resultados en una tabla limpia
+                    # --- NUEVA SECCIÓN: RESUMEN DE PANELES ---
+                    st.markdown("### 📋 Resumen de Inventario")
+                    
+                    # Extraer los tamaños de los paneles usados
+                    tamanos_usados = [row["Tamaño"] for row in data]
+                    
+                    # Definir los tamaños estándar de Kingspan
+                    PANEL_SIZES = [12000, 9000, 6000, 3000]
+                    
+                    # Crear columnas para las métricas rápidas
+                    met_cols = st.columns(len(PANEL_SIZES))
+                    resumen_data = []
+
+                    for i, tamaño in enumerate(PANEL_SIZES):
+                        cantidad = tamanos_usados.count(tamaño)
+                        resumen_data.append({"Tamaño (mm)": f"{tamaño}", "Cantidad Necesaria": cantidad})
+                        # Mostrar métrica individual
+                        met_cols[i].metric(f"{tamaño} mm", cantidad)
+
+                    # Mostrar tabla de resumen estilizada
+                    st.table(resumen_data)
+                    
+                    st.markdown("---")
+                    
+                    # --- DETALLE DE CORTES ---
+                    st.markdown("### 🔍 Detalle por Panel")
                     st.dataframe(data, use_container_width=True)
                     
-                    # Metricas de resumen (opcional)
-                    total_paneles = len(data)
-                    st.metric("Total Paneles Necesarios", total_paneles)
+                    # Botón para descargar resultados (opcional pero muy útil)
+                    csv = st.sidebar.download_button(
+                        label="Descargar Reporte CSV",
+                        data=str(data),
+                        file_name="optimizacion_kingspan.csv",
+                        mime="text/csv",
+                    )
+
                 else:
                     st.error("❌ Error en la conexión con el motor de cálculo (API)")
 
@@ -117,7 +147,9 @@ with col_table:
                 st.error(f"🚨 Error crítico: {e}")
     else:
         st.info("Ingresa los datos a la izquierda y presiona el botón para ver los resultados.")
-
+        
+        
+        
 # Pie de página responsivo
 st.markdown("""
     <div style='text-align: center; color: #888; padding-top: 50px;'>
