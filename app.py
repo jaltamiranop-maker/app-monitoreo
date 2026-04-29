@@ -1,5 +1,89 @@
 import streamlit as st
 import requests
+import pandas as pd
+from io import BytesIO
+from reportlab.lib.pagesizes import letter
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+from reportlab.lib import colors
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import letter
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, HRFlowable
+from reportlab.graphics.shapes import Drawing, Rect, String
+from reportlab.lib.styles import getSampleStyleSheet
+from io import BytesIO
+
+def generar_pdf(cliente, data_tabla):
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=letter, leftMargin=40, rightMargin=40)
+    elements = []
+    styles = getSampleStyleSheet()
+
+    # --- ENCABEZADO ESTILO ORDEN DE PEDIDO ---
+    elements.append(Paragraph(f"ORDEN DE PEDIDO N° 0001", styles['Title']))
+    
+    # Datos del Cliente en una tabla de 2 columnas
+    datos_cliente_table = [
+        [f"<b>Cliente:</b> {cliente['nombre']}", f"<b>Proyecto:</b> {cliente['proyecto']}"],
+        [f"<b>Fecha:</b> {cliente['fecha']}", "<b>Ubicación:</b> PLANTA MANUELITA PALMIRA"]
+    ]
+    t_cli = Table(datos_cliente_table, colWidths=[260, 260])
+    t_cli.setStyle(TableStyle([
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+        ('FONTNAME', (0, 0), (-1, -1), 'Helvetica'),
+        ('BACKGROUND', (0,0), (0,1), colors.whitesmoke)
+    ]))
+    elements.append(t_cli)
+    elements.append(Spacer(1, 20))
+
+    # --- TABLA DE DISTRIBUCIÓN DE PANELES ---
+    elements.append(Paragraph("<b>DISTRIBUCIÓN Y DETALLE DE CORTES</b>", styles['Heading3']))
+    header = ["Panel #", "Tamaño (mm)", "Cortes (mm)", "Desperdicio (mm)"]
+    tabla_data = [header]
+    
+    for fila in data_tabla:
+        tabla_data.append([fila["Panel"], fila["Tamaño"], fila["Cortes"], fila["Desperdicio"]])
+
+    t_resumen = Table(tabla_data, colWidths=[60, 100, 260, 100])
+    t_resumen.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#004a99")),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
+        ('FONTSIZE', (0, 0), (-1, -1), 9),
+    ]))
+    elements.append(t_resumen)
+    elements.append(Spacer(1, 20))
+
+    # --- GRÁFICOS DE CORTE PARA OPERARIOS ---
+    elements.append(Paragraph("<b>GUÍA VISUAL PARA CORTE</b>", styles['Heading3']))
+    
+    for fila in data_tabla:
+        # Dibujo del panel
+        d = Drawing(500, 50)
+        ancho_total = 500  # Representa el 100% del panel en el dibujo
+        longitud_panel = fila["Tamaño"]
+        
+        # Dibujar el panel base (Gris claro)
+        d.add(Rect(0, 10, ancho_total, 30, fillColor=colors.lightgrey))
+        
+        # Dibujar cada corte (Azul Kingspan)
+        cortes_lista = [int(x.strip()) for x in str(fila["Cortes"]).split(",")]
+        x_actual = 0
+        for corte in cortes_lista:
+            ancho_corte = (corte / longitud_panel) * ancho_total
+            d.add(Rect(x_actual, 10, ancho_corte, 30, fillColor=colors.HexColor("#004a99")))
+            d.add(String(x_actual + 2, 15, f"{corte}mm", fontSize=7, fillColor=colors.white))
+            x_actual += ancho_corte
+            
+        # Etiqueta del panel
+        elements.append(Paragraph(f"Panel {fila['Panel']} ({fila['Tamaño']} mm)", styles['Normal']))
+        elements.append(d)
+        elements.append(Spacer(1, 10))
+
+    doc.build(elements)
+    buffer.seek(0)
+    return buffer
 
 # Configuración de la página
 st.set_page_config(
@@ -52,6 +136,18 @@ st.markdown("""
     }
     </style>
     """, unsafe_allow_html=True)
+
+# --- BARRA LATERAL: DATOS DEL CLIENTE ---
+st.sidebar.header("👤 Datos del Cliente")
+nombre_cliente = st.sidebar.text_input("Nombre / Empresa")
+proyecto_cliente = st.sidebar.text_input("Nombre del Proyecto")
+fecha_actual = st.sidebar.date_input("Fecha de Entrega")
+
+cliente_dict = {
+    "nombre": nombre_cliente,
+    "proyecto": proyecto_cliente,
+    "fecha": str(fecha_actual)
+}
 
 # --- ENCABEZADO CON LOGO ---
 col_logo, col_text = st.columns([1, 3])
@@ -138,6 +234,17 @@ with col_table:
                         data=str(data),
                         file_name="optimizacion_kingspan.csv",
                         mime="text/csv",
+                    )
+                    # --- BOTÓN DE DESCARGA PDF ---
+                    st.markdown("### 🖨️ Exportar Resultados")
+                    pdf_file = generar_pdf(cliente_dict, data)
+    
+                    st.download_button(
+                    label="📥 Descargar Reporte en PDF",
+                    data=pdf_file,
+                    file_name=f"Cortes_{nombre_cliente}_{fecha_actual}.pdf",
+                    mime="application/pdf",
+                    key="pdf_download"
                     )
 
                 else:
