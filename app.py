@@ -1,5 +1,6 @@
 import streamlit as st
 import requests
+import base64
 import pandas as pd
 from io import BytesIO
 from reportlab.lib.pagesizes import letter
@@ -22,6 +23,11 @@ from database import consultar_historial
 # Inicializamos la base de datos al arrancar
 iniciar_db()
 
+def get_gif_base64(path):
+    with open(path, "rb") as f:
+        return base64.b64encode(f.read()).decode()
+
+gif_base64 = get_gif_base64("LeoSaludando.gif")
 # --- LÓGICA DEL NÚMERO DE ORDEN ---
 # Consultamos el siguiente número disponible
 siguiente_n_orden = obtener_siguiente_orden()
@@ -380,9 +386,25 @@ with tab_optimizador:
          
         
 # Pie de página responsivo
-st.markdown("""
-    <div style='text-align: center; color: #888; padding-top: 50px;'>
-        <small>© 2026 Kingspan Optimization Tools</small>
-    </div>
-    """, unsafe_allow_html=True)
+st.markdown(f"""
+<style>
+.mascota-container {{
+    position: fixed;
+    bottom: 20px;
+    right: 20px !important;  /* 👉 derecha */
+    left: auto !important;   /* 👉 evita que se vaya a la izquierda */
+    width: 140px;
+    z-index: 9999;
+}}
+
+.mascota-container img {{
+    width: 100%;
+    height: auto;
+}}
+</style>
+
+<div class="mascota-container">
+    <img src="data:image/gif;base64,{gif_base64}">
+</div>
+""", unsafe_allow_html=True)
 
