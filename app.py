@@ -17,6 +17,7 @@ from reportlab.platypus import Image as RLImage
 import streamlit as st
 from database import iniciar_db, obtener_siguiente_orden, guardar_pedido
 from database import consultar_historial
+from database import obtener_detalle_pedido
 
  
 # Inicializamos la base de datos al arrancar
@@ -27,84 +28,356 @@ iniciar_db()
 siguiente_n_orden = obtener_siguiente_orden()
 
 def generar_pdf(info, data_tabla):
+    from reportlab.platypus import (
+        SimpleDocTemplate, Table, TableStyle,
+        Paragraph, Spacer
+    )
+    from reportlab.lib import colors
+    from reportlab.lib.styles import getSampleStyleSheet
+    from reportlab.lib.pagesizes import letter
+    from reportlab.lib.enums import TA_CENTER
+    from reportlab.lib.styles import ParagraphStyle
+    from io import BytesIO
+
     buffer = BytesIO()
-    doc = SimpleDocTemplate(buffer, pagesize=letter, topMargin=20)
-    elements = []
+
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=letter,
+        topMargin=15,
+        leftMargin=15,
+        rightMargin=15,
+        bottomMargin=15
+    )
+
     styles = getSampleStyleSheet()
-    
-    # --- LOGO Y TÍTULO ---
-    # Intentamos cargar el logo (debe estar en la misma carpeta)
-    header_table = [[Paragraph(f"<font size=14>ORDEN DE PRODUCCIÓN N° {info['n_orden']}</font>", styles['Title'])]]
-    t_header = Table(header_table, colWidths=[150, 350])
-    t_header.setStyle(TableStyle([('VALIGN', (0,0), (-1,-1), 'MIDDLE')]))
-    elements.append(t_header)
-    elements.append(HRFlowable(width="100%", thickness=2, color=colors.HexColor("#c5a367")))
+
+    titulo_style = ParagraphStyle(
+        'titulo',
+        parent=styles['Heading1'],
+        alignment=TA_CENTER,
+        textColor=colors.white,
+        fontSize=20,
+        leading=24
+    )
+
+    normal_center = ParagraphStyle(
+        'normal_center',
+        parent=styles['BodyText'],
+        alignment=TA_CENTER,
+        fontSize=9
+    )
+
+    azul = colors.HexColor("#003B8E")
+
+    elements = []
+
+    # =========================================================
+    # HEADER PRINCIPAL
+    # =========================================================
+
+    header = Table([
+        [
+            Paragraph("<b>ORDEN DE PEDIDO</b>", titulo_style),
+            Paragraph(
+                f"<b>N° ORDEN<br/>{info['n_orden']}</b>",
+                titulo_style
+            )
+        ]
+    ], colWidths=[420, 110])
+
+    header.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, -1), azul),
+        ('TEXTCOLOR', (0, 0), (-1, -1), colors.white),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('BOX', (0, 0), (-1, -1), 1, colors.white),
+        ('FONTSIZE', (0, 0), (-1, -1), 18),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 12),
+        ('TOPPADDING', (0, 0), (-1, -1), 12),
+    ]))
+
+    elements.append(header)
+    elements.append(Spacer(1, 10))
+
+    # =========================================================
+    # DATOS CLIENTE
+    # =========================================================
+
+    datos_cliente = [
+        ["Cliente:", info["cliente"], "Proyecto:", ""],
+        ["Nombre Contacto:", info["contacto"], "N° Teléfono Obra:", info["telefono"]],
+        ["Teléfono Contacto:", info["telefono"], "E-Mail Contacto:", info["correo"]],
+        ["Tipo de Destino:", info["tipo_destino"], "Tipo de Obra:", info["mercado"]],
+        ["Ubicación Proyecto:", info["ciudad"], "Tipo de Proyecto:", "NUEVA CONSTRUCCIÓN"],
+        ["Dirección Entrega:", info["direccion"], "Transporte a Cargo de:", info["transporte"]],
+        ["Fecha compromiso entrega en Planta:", info["f_entrega"], "", ""],
+    ]
+
+    tabla_cliente = Table(
+        datos_cliente,
+        colWidths=[110, 160, 110, 150]
+    )
+
+    tabla_cliente.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (0, -1), azul),
+        ('BACKGROUND', (2, 0), (2, 5), azul),
+
+        ('TEXTCOLOR', (0, 0), (0, -1), colors.white),
+        ('TEXTCOLOR', (2, 0), (2, 5), colors.white),
+
+        ('FONTNAME', (0, 0), (-1, -1), 'Helvetica-Bold'),
+
+        ('FONTNAME', (1, 0), (1, -1), 'Helvetica'),
+        ('FONTNAME', (3, 0), (3, -1), 'Helvetica'),
+
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+
+        ('SPAN', (1, 6), (3, 6)),
+    ]))
+
+    elements.append(tabla_cliente)
     elements.append(Spacer(1, 15))
 
-    # --- TABLA DE DATOS DEL CLIENTE Y PROYECTO ---
-    data_cliente = [
-        [Paragraph(f"<b>Cliente:</b> {info['cliente']}", styles['Normal']), Paragraph(f"<b>NIT:</b> {info['nit']}", styles['Normal'])],
-        [Paragraph(f"<b>Contacto:</b> {info['contacto']}", styles['Normal']), Paragraph(f"<b>Teléfono:</b> {info['telefono']}", styles['Normal'])],
-        [Paragraph(f"<b>Comercial:</b> {info['comercial']}", styles['Normal']), Paragraph(f"<b>Producto:</b> {info['producto']}", styles['Normal'])],
-        [Paragraph(f"<b>Transporte:</b> {info['transporte']}", styles['Normal']), Paragraph(f"<b>Ciudad:</b> {info['ciudad']}", styles['Normal'])],
-        [Paragraph(f"<b>Dirección:</b> {info['direccion']}", styles['Normal']), Paragraph(f"<b>F. Entrega:</b> {info['f_entrega']}", styles['Normal'])]
-    ]
-    t_cli = Table(data_cliente, colWidths=[250, 250])
-    t_cli.setStyle(TableStyle([
-        ('GRID', (0,0), (-1,-1), 0.5, colors.grey),
-        ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
-        ('BOTTOMPADDING', (0,0), (-1,-1), 5),
-    ]))
-    elements.append(t_cli)
-    elements.append(Spacer(1, 20))
+    # =========================================================
+    # RESUMEN SUPERIOR
+    # =========================================================
 
-    # --- TABLA DE DISTRIBUCIÓN DE PANELES ---
-    elements.append(Paragraph("<b>DISTRIBUCIÓN Y DETALLE DE CORTES</b>", styles['Heading3']))
-    header = ["Panel #", "Tamaño (mm)", "Cortes (mm)", "Desperdicio (mm)"]
-    tabla_data = [header]
-    
+    area_total = 0
+    total_unidades = 0
+
     for fila in data_tabla:
-        tabla_data.append([fila["Panel"], fila["Tamaño"], fila["Cortes"], fila["Desperdicio"]])
+        cortes = [int(x.strip()) for x in str(fila["Cortes"]).split(",")]
+        area_total += sum(cortes) / 1000
+        total_unidades += len(cortes)
 
-    t_resumen = Table(tabla_data, colWidths=[60, 100, 260, 100])
-    t_resumen.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#004a99")),
-        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-        ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
-        ('FONTSIZE', (0, 0), (-1, -1), 9),
+    resumen_superior = Table([
+        [
+            Paragraph("<b>TIPO DE PRODUCTO</b><br/><br/>PANEL", titulo_style),
+
+            Table([
+                ["Longitud\n(mm)", "Unidades", "Área\n(m²)"],
+                ["9.000", str(total_unidades), f"{area_total:.2f}"]
+            ], colWidths=[90, 90, 90]),
+
+            Table([
+                ["RESUMEN", ""],
+                ["Área Requerida:", f"{area_total:.2f} m²"],
+                ["Área Suministrada:", f"{area_total:.2f} m²"],
+                ["Desperdicio Total:", "0.00 m²"]
+            ], colWidths=[120, 120])
+        ]
+    ], colWidths=[120, 280, 240])
+
+    resumen_superior.setStyle(TableStyle([
+        ('VALIGN', (0, 0), (-1, -1), 'TOP')
     ]))
-    elements.append(t_resumen)
-    elements.append(Spacer(1, 20))
 
-    # --- GRÁFICOS DE CORTE PARA OPERARIOS ---
-    elements.append(Paragraph("<b>GUÍA VISUAL PARA CORTE</b>", styles['Heading3']))
-    
+    elements.append(resumen_superior)
+    elements.append(Spacer(1, 15))
+
+    # =========================================================
+    # TABLAS CENTRALES
+    # =========================================================
+
+    cortes_data = [["Corte", "Unidades", "Requerido", "Suministrado"]]
+
     for fila in data_tabla:
-        # Dibujo del panel
-        d = Drawing(500, 50)
-        ancho_total = 500  # Representa el 100% del panel en el dibujo
-        longitud_panel = fila["Tamaño"]
-        
-        # Dibujar el panel base (Gris claro)
-        d.add(Rect(0, 10, ancho_total, 30, fillColor=colors.lightgrey))
-        
-        # Dibujar cada corte (Azul Kingspan)
         cortes_lista = [int(x.strip()) for x in str(fila["Cortes"]).split(",")]
-        x_actual = 0
+
         for corte in cortes_lista:
-            ancho_corte = (corte / longitud_panel) * ancho_total
-            d.add(Rect(x_actual, 10, ancho_corte, 30, fillColor=colors.HexColor("#004a99")))
-            d.add(String(x_actual + 2, 15, f"{corte}mm", fontSize=7, fillColor=colors.white))
-            x_actual += ancho_corte
-            
-        # Etiqueta del panel
-        elements.append(Paragraph(f"Panel {fila['Panel']} ({fila['Tamaño']} mm)", styles['Normal']))
-        elements.append(d)
-        elements.append(Spacer(1, 10))
+            cortes_data.append([
+                f"{corte} mm",
+                "1",
+                f"{corte/1000:.2f} m²",
+                f"{corte/1000:.2f} m²"
+            ])
+
+    cortes_data.append([
+        "TOTAL",
+        str(total_unidades),
+        f"{area_total:.2f} m²",
+        f"{area_total:.2f} m²"
+    ])
+
+    tabla_cortes = Table(cortes_data, colWidths=[70, 60, 90, 90])
+
+    tabla_cortes.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), azul),
+        ('BACKGROUND', (0, -1), (0, -1), azul),
+
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+        ('TEXTCOLOR', (0, -1), (0, -1), colors.white),
+
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
+
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+    ]))
+
+    desperdicio = Table([
+        ["Longitud", "Unidades", "m²"],
+        ["0 mm", "0", "0.00"],
+        ["0 mm", "0", "0.00"],
+        ["TOTAL", "0", "0.00"]
+    ], colWidths=[90, 70, 70])
+
+    desperdicio.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), azul),
+        ('BACKGROUND', (0, -1), (0, -1), azul),
+
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+        ('TEXTCOLOR', (0, -1), (0, -1), colors.white),
+
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
+
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+    ]))
+
+    distribucion = [["Panel", "Tamaño", "Corte 1", "Desperdicio"]]
+
+    contador = 1
+
+    for fila in data_tabla:
+        cortes_lista = [int(x.strip()) for x in str(fila["Cortes"]).split(",")]
+
+        for corte in cortes_lista:
+            desperdicio_mm = 12000 - corte
+
+            distribucion.append([
+                str(contador),
+                "12000",
+                str(corte),
+                str(desperdicio_mm)
+            ])
+
+            contador += 1
+
+    tabla_distribucion = Table(
+        distribucion,
+        colWidths=[45, 70, 70, 80]
+    )
+
+    tabla_distribucion.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), azul),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('FONTSIZE', (0, 0), (-1, -1), 8),
+    ]))
+
+    centro = Table([
+        [tabla_cortes, desperdicio, tabla_distribucion]
+    ], colWidths=[240, 180, 265])
+
+    elements.append(centro)
+    elements.append(Spacer(1, 20))
+
+    # =========================================================
+    # PARTE INFERIOR
+    # =========================================================
+    
+    # Extraemos la tabla que el usuario editó en la interfaz web, si no existe ponemos una vacía por seguridad
+    tabla_log_usuario = info.get("servicio_logistico_tabla", [
+        {"Concepto": "SERVICIO LOGÍSTICO", "Tipo": "MINIMULA", "Cantidad": 1.0, "Precio_COP": 0},
+        {"Concepto": "", "Tipo": "", "Cantidad": 0.0, "Precio_COP": 0}
+    ])
+    
+    # Formateamos los números a strings con separadores de miles y signo $ para el PDF
+    f1_cant = f"{tabla_log_usuario[0]['Cantidad']:,.2f}"
+    f1_cop = f"${tabla_log_usuario[0]['Precio_COP']:,.0f}" if tabla_log_usuario[0]['Precio_COP'] > 0 else "$0"
+    
+    f2_cant = f"{tabla_log_usuario[1]['Cantidad']:,.2f}"
+    f2_cop = f"${tabla_log_usuario[1]['Precio_COP']:,.0f}" if tabla_log_usuario[1]['Precio_COP'] > 0 else "$0"
+
+    # Estructuramos la matriz exactamente igual al diseño de la imagen original
+    servicio = Table([
+        ["SERVICIO LOGÍSTICO", ""],
+        ["Tipo", str(tabla_log_usuario[0]["Tipo"])],
+        ["Cantidad", f1_cant],
+        ["COP $", f1_cop],
+        ["", ""], # Fila divisoria intermedia
+        ["Tipo", str(tabla_log_usuario[1]["Tipo"])],
+        ["Cantidad", f2_cant],
+        ["COP $", f2_cop],
+    ], colWidths=[120, 120])
+    
+    # Aplicamos estilos específicos para combinar celdas de títulos como en la imagen
+    servicio.setStyle(TableStyle([
+        ('SPAN', (0, 0), (1, 0)),  # Une "SERVICIO LOGÍSTICO"
+        ('SPAN', (0, 4), (1, 4)),  # Une la fila vacía del medio
+        ('BACKGROUND', (0, 0), (-1, 0), azul),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+    ]))
+
+    # --- RE-CALCULAR EL TOTAL DE LA ORDEN DE FORMA REAL ---
+    # Sumamos el costo logístico real al total de la orden en lugar del estático 4600000
+    costo_logistico_total = sum(item['Cantidad'] * item['Precio_COP'] for item in tabla_log_usuario)
+    total_orden = 4600000 + costo_logistico_total # Puedes cambiar la base de 4600000 según tus productos
+
+    kits = Table([
+        ["KITS DE FIJACIÓN", ""],
+        ["Tipo", ""],
+        ["Cantidad", ""],
+        ["COP $", ""],
+        ["", ""],
+        ["Tipo", ""],
+        ["Cantidad", ""],
+        ["COP $", ""],
+    ], colWidths=[120, 120])
+
+    totales = Table([
+        ["TOTALES", ""],
+        ["Área Requerida:", f"{area_total:.2f} m²"],
+        ["Área Suministrada:", f"{area_total:.2f} m²"],
+        ["Desperdicio Total:", "0.00 m²"],
+        ["TOTAL ORDEN", ""],
+        [f"${total_orden:,.0f}", "COP"]
+    ], colWidths=[140, 120])
+
+    for tabla in [servicio, kits, totales]:
+        tabla.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), azul),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ]))
+
+    inferior = Table([
+        [servicio, kits, totales]
+    ], colWidths=[240, 240, 260])
+
+    elements.append(inferior)
+    elements.append(Spacer(1, 20))
+
+    # =========================================================
+    # OBSERVACIONES
+    # =========================================================
+
+    observaciones = Table([
+        ["OBSERVACIONES:"],
+        [""],
+        [""]
+    ], colWidths=[740])
+
+    observaciones.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (0, 0), azul),
+        ('TEXTCOLOR', (0, 0), (0, 0), colors.white),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
+        ('ROWHEIGHT', (1, 1), (-1, -1), 40),
+    ]))
+
+    elements.append(observaciones)
 
     doc.build(elements)
+
     buffer.seek(0)
+
     return buffer
 
 # Configuración de la página
@@ -209,6 +482,7 @@ with st.sidebar.form("formulario_orden"):
         correo = st.text_input("Correo electrónico")
 
     # Sección 3: Logística y Destino
+    # Sección 3: Logística y Entrega
     with st.expander("Logística y Entrega"):
         sector = st.text_input("Sector")
         mercado = st.selectbox("Mercado Final", ["Escoge mercado","Nuevo", "Remodelación"])
@@ -216,13 +490,14 @@ with st.sidebar.form("formulario_orden"):
         tipo_destino = st.selectbox("Tipo Destino", ["Escoge una opción","Venta con IVA", "Exportación"])
         transporte = st.selectbox("Transporte", ["Escoge una opción","Kingspan", "Cliente"])
         
-        # Mostrar servicio logístico solo si es Kingspan
-        servicio_logistico = ""
-        if transporte == "Kingspan":
-            servicio_logistico = st.selectbox("Servicio Logístico", ["Escoge una opción","Minimula", "Sencillo","Turbo",])
-            
+        # --- MODIFICACIÓN AQUÍ ---
+        # Inicializamos variables por defecto
+        servicio_logistico = "No aplica"
         ciudad = ""
-        if transporte =="Kingspan":
+        
+        if transporte == "Kingspan":
+            # Cambiamos las opciones a MAYÚSCULAS para que coincida exactamente con tu imagen (MINIMULA)
+            servicio_logistico = st.selectbox("Servicio Logístico", ["Escoge una opción", "MINIMULA", "SENCILLO", "TURBO"])
             ciudad = st.text_input("Ciudad de Entrega")
             
         direccion = st.text_input("Dirección de Entrega")
@@ -281,6 +556,7 @@ with tab_optimizador:
         st.subheader("📊 Resultado del Cálculo")
         st.info("Configura los cortes y los datos del cliente para generar una nueva orden.")        
     if btn_optimizar:
+        
         if not cortes:
             st.warning("⚠️ Por favor, ingresa datos válidos de longitud y cantidad.")
         else:
@@ -323,22 +599,83 @@ with tab_optimizador:
                     st.markdown("### 🔍 Detalle por Panel")
                     st.dataframe(data, use_container_width=True)
 
+                    # =========================================================
+                    # NUEVA SECCIÓN: TABLA INTERACTIVA DE SERVICIO LOGÍSTICO
+                    # =========================================================
+                    st.markdown("---")
+                    st.subheader("🚚 Datos del Servicio Logístico")
+                    
+                    # Inicializamos los datos por defecto para la tabla interactiva
+                    # Si el transporte es del cliente, dejamos valores vacíos.
+                    tipo_tabla = servicio_logistico if transporte == "Kingspan" else "N/A"
+                    
+                    # Creamos la estructura idéntica a tu imagen (2 filas de servicio)
+                    raw_logistica_data = [
+                        {"Concepto": "SERVICIO LOGÍSTICO", "Tipo": tipo_tabla, "Cantidad": 1.00, "Precio_COP": 2800000},
+                        {"Concepto": "", "Tipo": "", "Cantidad": 0.00, "Precio_COP": 0}
+                    ]
+                    
+                    df_logistica = pd.DataFrame(raw_logistica_data)
+                    
+                    # Configuración de las columnas para bloquear "Concepto" y "Tipo", y formatear "COP $"
+                    config_columnas = {
+                        "Concepto": st.column_config.TextColumn("Concepto", disabled=True, width="medium"),
+                        "Tipo": st.column_config.TextColumn("Tipo", disabled=True, width="medium"),
+                        "Cantidad": st.column_config.NumberColumn("Cantidad", min_value=0.0, format="%.2f", step=1.0),
+                        "Precio_COP": st.column_config.NumberColumn(
+                            "COP $", 
+                            min_value=0, 
+                            format="$%d", # El signo $ se vuelve nativo y no se puede borrar
+                            step=50000
+                        )
+                    }
+                    
+                    st.write("Completa los valores de cantidad y costos para la orden:")
+                    # Guardamos los cambios que haga el usuario en una variable
+                    tabla_editada = st.data_editor(
+                        df_logistica, 
+                        column_config=config_columnas, 
+                        use_container_width=True, 
+                        hide_index=True,
+                        num_rows="fixed"
+                    )
+                    
+                    # Convertimos la tabla editada a una lista de diccionarios para pasarla al PDF y a la DB
+                    datos_servicio_guardar = tabla_editada.to_dict(orient="records")
+                    st.markdown("---")
+
+                    # Validamos datos del cliente antes de proceder a la descarga
                     if not cliente or not nit:
                         st.error("Por favor completa los datos del cliente en la barra lateral antes de optimizar.")
+                    elif transporte == "Kingspan" and servicio_logistico == "Escoge una opción":
+                        st.error("Por favor selecciona un Tipo de Servicio Logístico válido en la barra lateral.")
                     else:
                         data_opt = data
+                        
+                        # Añadimos los datos de la tabla logística editada al diccionario general de la orden
+                        datos_pdf["servicio_logistico_tabla"] = datos_servicio_guardar
+                        
+                        # Guardamos en la base de datos (tu función actual)
                         guardar_pedido(cliente, producto, datos_pdf, data_opt)
                         st.success("Orden guardada correctamente.")
 
                         datos_pdf["n_orden"] = f"{siguiente_n_orden:04d}"
+                        
+                        # --- PASAMOS LA TABLA EDITADA A LA FUNCIÓN GENERAR_PDF ---
                         pdf_final = generar_pdf(datos_pdf, data_opt)
-                        st.download_button("📥 Descargar Orden", pdf_final, f"Orden_{siguiente_n_orden}.pdf")
-                        st.download_button(
-                            label="📥 DESCARGAR ORDEN Y FINALIZAR",
-                            data=pdf_final,
-                            file_name=f"Orden_{siguiente_n_orden:04d}_{cliente}.pdf",
-                            mime="application/pdf")
+                        
+                        col_btn1, col_btn2 = st.columns(2)
+                        with col_btn1:
+                            st.download_button("📥 Descargar Orden", pdf_final, f"Orden_{siguiente_n_orden}.pdf")
+                        with col_btn2:
+                            st.download_button(
+                                label="📥 DESCARGAR ORDEN Y FINALIZAR",
+                                data=pdf_final,
+                                file_name=f"Orden_{siguiente_n_orden:04d}_{cliente}.pdf",
+                                mime="application/pdf"
+                            )
                         st.success(f"Pedido N° {siguiente_n_orden} guardado en base de datos.")
+                    
                 else:
                     st.error(f"Error en la optimización: {response.status_code}")
             except Exception as e:
@@ -366,7 +703,7 @@ with tab_optimizador:
                 if st.button(f"Generar PDF de la Orden {id_a_recuperar}"):
                     with st.spinner("Reconstruyendo documento..."):
                         # Obtener datos de la DB
-                        info_cliente, info_cortes = data_opt(id_a_recuperar)
+                        info_cliente, info_cortes = obtener_detalle_pedido(id_a_recuperar)
                         
                         if info_cliente and info_cortes:
                             # Usamos la misma función de PDF que ya tenemos
