@@ -79,6 +79,6 @@ def generar_pdf(info, data_tabla):
         elements.append(d)
         elements.append(Spacer(1, 10))
 
-    doc.build(element)
+    doc.build(elements)
     buffer.seek(0)
     return buffer

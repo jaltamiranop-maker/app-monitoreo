@@ -1,15 +1,7 @@
 
 
 import streamlit as st
-import requests
 import base64
-
-import pandas as pd
-from reportlab.lib.pagesizes import letter
-from reportlab.lib.styles import getSampleStyleSheet
-from reportlab.lib.pagesizes import letter
-from reportlab.lib.styles import getSampleStyleSheet
-from io import BytesIO
 
 #Importacion para POE
 import datetime
@@ -23,8 +15,6 @@ from application.handlers import handle_guardar
 
 
 init_state()
-if "resultado" not in st.session_state:
-    st.session_state.resultado = None
 iniciar_db()
 
 siguiente_n_orden = obtener_siguiente_orden()
@@ -33,7 +23,7 @@ def get_gif_base64(path):
     with open(path, "rb") as f:
         return base64.b64encode(f.read()).decode()
 
-gif_base64 = get_gif_base64("Leo.gif")
+gif_base64 = get_gif_base64("leoanimado.mp4")
 
 
 
@@ -245,7 +235,7 @@ with tab_optimizador:
             st.success("Pedido guardado correctamente")
 
     if st.button("📥 Descargar PDF"):
-        res_pdf = handle_generar_pdf(cliente, data)
+        res_pdf = handle_generar_pdf(datos_pdf, data)
         
         if not res_pdf:
             st.error("No se pudo generar el PDF")

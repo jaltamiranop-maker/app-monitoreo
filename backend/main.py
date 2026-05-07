@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
-from backend.optimizer import optimize_cutting, format_output
+from optimizer import optimize_cutting, format_output
 
 
 app = FastAPI()
