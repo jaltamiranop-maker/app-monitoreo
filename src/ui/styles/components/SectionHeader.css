@@ -1,0 +1,12 @@
+.sectionHeader{
+
+    fontSize: 10;
+    fontWeight: 800; 
+    letterSpacing: "0.12em";
+    textTransform: "uppercase";
+    color: var(--blue); 
+    borderBottom: 2px solid var(--blue);
+    paddingBottom: 6; 
+    marginBottom: 12
+
+}

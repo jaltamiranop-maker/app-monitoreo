@@ -1,24 +1,17 @@
 import { useState, useEffect, useRef } from "react";
+// ─── COMPONENTS ───────────────────────────────────────────────────────────────
 import Field from "./components/Field";
 import Input from "./components/Input";
 import Select from "./components/Select";
+import SectionHeader from "./components/SectionHeader";
+import Toast from "./components/Toast";
+import PanelBar from "./cards/PanelBar";
+
+import SidebarForm from "./cards/SideBarForm/SideBarForm";
 // ─── CONSTANTS ───────────────────────────────────────────────────────────────
 const API_BASE = "http://127.0.0.1:8000";
 const PANEL_SIZES = [12000, 9000, 6000, 3000];
 
-const COMERCIALES = [
-  "ALTAMIRANO PUENTES YAZMIN","ARENAS GUZMAN DIEGO FERNANDO","ARIAS GIRALDO ANA ISABEL",
-  "BENAVIDES MARQUEZ JULIO ALBERTO","CALDERON DIEGO","CANDELA YOLANDA",
-  "GARCIA RUIZ MONICA ALEXANDRA","GIRALDO ALZATE LINA MARCELA","GUERRERO JULIO",
-  "LOZANO TENORIO MARIA CAROLINA","MOJICA MONTALVO JESUS DAVID","NARANJO ALEXIS",
-  "PEREZ JOHANA","QUINTANA BARRIOS JAIRO ALONSO","SALAZAR EDWAR","VALENZUELA RONALD",
-];
-
-const PRODUCTOS = [
-  "KINGFRIGO PIR100 CAL28-9002/CAL28-9002","KINGFRIGO PIR80 CAL28-9002/CAL28-9002",
-  "KINGFRIGO PIR40 CAL28-9002/CAL28-9002","KINGROOF PIR30 CAL28-9002/CAL28-9002",
-  "KINGROOF PIR18 CAL28-9002/CAL28-9002","KINGROOF PIR15 CAL28-9002/CAL28-9002",
-];
 
 const today = () => new Date().toISOString().split("T")[0];
 
@@ -55,198 +48,10 @@ const IconCheck = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>
 );
 
-// ─── COMPONENTS ───────────────────────────────────────────────────────────────
 
-
-function SectionHeader({ children }) {
-  return (
-    <div style={{
-      fontSize: 10, fontWeight: 800, letterSpacing: "0.12em", textTransform: "uppercase",
-      color: "var(--blue)", borderBottom: "2px solid var(--blue)", paddingBottom: 6, marginBottom: 12
-    }}>
-      {children}
-    </div>
-  );
-}
-
-function Toast({ message, type, onClose }) {
-  useEffect(() => {
-    const t = setTimeout(onClose, 3500);
-    return () => clearTimeout(t);
-  }, []);
-  const bg = type === "success" ? "#16a34a" : type === "error" ? "#dc2626" : "#d97706";
-  return (
-    <div style={{
-      position: "fixed", bottom: 24, right: 24, zIndex: 9999,
-      background: bg, color: "#fff", borderRadius: 8, padding: "12px 20px",
-      fontSize: 13, fontWeight: 600, boxShadow: "0 8px 32px rgba(0,0,0,0.25)",
-      display: "flex", alignItems: "center", gap: 10,
-      animation: "slideUp 0.3s ease"
-    }}>
-      {type === "success" && <IconCheck />}
-      {message}
-    </div>
-  );
-}
-
-// Panel visualizer bar
-function PanelBar({ panel }) {
-  const cuts = panel.Cortes.split(",").map(s => parseInt(s.trim()));
-  const total = panel.Tamaño;
-  const colors = ["#003B8E","#1a56b0","#2e6fd4","#4a85e0","#6699e8"];
-  return (
-    <div style={{ display: "flex", height: 28, borderRadius: 6, overflow: "hidden", border: "1px solid var(--border)", marginTop: 4 }}>
-      {cuts.map((c, i) => (
-        <div key={i} title={`${c} mm`} style={{
-          width: `${(c / total) * 100}%`, background: colors[i % colors.length],
-          borderRight: i < cuts.length - 1 ? "1px solid rgba(255,255,255,0.3)" : "none",
-          display: "flex", alignItems: "center", justifyContent: "center",
-          fontSize: 9, color: "#fff", fontWeight: 700, overflow: "hidden", whiteSpace: "nowrap"
-        }}>
-          {c >= 800 ? `${c}` : ""}
-        </div>
-      ))}
-      {panel.Desperdicio > 0 && (
-        <div title={`Desperdicio: ${panel.Desperdicio} mm`} style={{
-          flexGrow: 1, background: "repeating-linear-gradient(45deg, #f3f4f6, #f3f4f6 4px, #e5e7eb 4px, #e5e7eb 8px)",
-          display: "flex", alignItems: "center", justifyContent: "center",
-          fontSize: 9, color: "#9ca3af", fontWeight: 600
-        }}>
-          {panel.Desperdicio > 500 ? `~${panel.Desperdicio}mm` : ""}
-        </div>
-      )}
-    </div>
-  );
-}
 
 // ─── SIDEBAR FORM ─────────────────────────────────────────────────────────────
-function SidebarForm({ form, setForm, nextOrden }) {
-  const set = (k) => (e) => setForm(f => ({ ...f, [k]: e.target.value }));
 
-  return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 20, padding: "0 0 24px" }}>
-      {/* Orden info */}
-      <div>
-        <SectionHeader>Información de la Orden</SectionHeader>
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          <Field label="Fecha de Despiece">
-            <Input type="date" value={form.f_despiece} onChange={set("f_despiece")} />
-          </Field>
-          <Field label="N° de Orden">
-            <div style={{
-              background: "var(--blue)", color: "#fff", borderRadius: 6, padding: "8px 11px",
-              fontSize: 13, fontWeight: 700, letterSpacing: "0.05em"
-            }}>
-              #{String(nextOrden).padStart(4, "0")}
-            </div>
-          </Field>
-          <Field label="Comercial Asignado">
-            <Select value={form.comercial} onChange={set("comercial")}>
-              <option value="">— Escoge Asesor —</option>
-              {COMERCIALES.map(c => <option key={c} value={c}>{c}</option>)}
-            </Select>
-          </Field>
-          <Field label="Orden de Compra">
-            <Input placeholder="OC-00000" value={form.orden_compra} onChange={set("orden_compra")} />
-          </Field>
-        </div>
-      </div>
-
-      {/* Cliente */}
-      <div>
-        <SectionHeader>Datos del Cliente</SectionHeader>
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          {[["cliente","Nombre del Cliente","Empresa S.A.S",true],
-            ["nit","NIT","900.000.000-0",true],
-            ["contacto","Contacto de Obra","Nombre Apellido"],
-            ["telefono","Teléfono","310 000 0000"],
-            ["correo","Correo Electrónico","correo@empresa.com"],
-          ].map(([k, label, ph, req]) => (
-            <Field key={k} label={label} required={req}>
-              <Input placeholder={ph} value={form[k]} onChange={set(k)} />
-            </Field>
-          ))}
-        </div>
-      </div>
-
-      {/* Logística */}
-      <div>
-        <SectionHeader>Logística y Entrega</SectionHeader>
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          <Field label="Sector">
-            <Input placeholder="Sector industrial..." value={form.sector} onChange={set("sector")} />
-          </Field>
-          <Field label="Mercado Final">
-            <Select value={form.mercado} onChange={set("mercado")}>
-              <option value="">— Escoge mercado —</option>
-              <option>Nuevo</option><option>Remodelación</option>
-            </Select>
-          </Field>
-          <Field label="Canal de Venta">
-            <Select value={form.canal} onChange={set("canal")}>
-              <option value="">— Escoge canal —</option>
-              <option>Cliente final</option><option>Distribuidor</option>
-            </Select>
-          </Field>
-          <Field label="Tipo Destino">
-            <Select value={form.tipo_destino} onChange={set("tipo_destino")}>
-              <option value="">— Escoge una opción —</option>
-              <option>Venta con IVA</option><option>Exportación</option>
-            </Select>
-          </Field>
-          <Field label="Transporte">
-            <Select value={form.transporte} onChange={set("transporte")}>
-              <option value="">— Escoge una opción —</option>
-              <option>Kingspan</option><option>Cliente</option>
-            </Select>
-          </Field>
-          {form.transporte === "Kingspan" && (
-            <>
-              <Field label="Servicio Logístico">
-                <Select value={form.servicio_logistico} onChange={set("servicio_logistico")}>
-                  <option value="">— Escoge una opción —</option>
-                  <option>MINIMULA</option><option>SENCILLO</option><option>TURBO</option>
-                </Select>
-              </Field>
-              <Field label="Ciudad de Entrega">
-                <Input placeholder="Ciudad..." value={form.ciudad} onChange={set("ciudad")} />
-              </Field>
-            </>
-          )}
-          <Field label="Dirección de Entrega">
-            <Input placeholder="Calle / Carrera..." value={form.direccion} onChange={set("direccion")} />
-          </Field>
-          <Field label="Fecha de Entrega">
-            <Input type="date" value={form.f_entrega} onChange={set("f_entrega")} />
-          </Field>
-        </div>
-      </div>
-
-      {/* Producto */}
-      <div>
-        <SectionHeader>Producto y Kit</SectionHeader>
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          <Field label="Producto">
-            <Select value={form.producto} onChange={set("producto")}>
-              <option value="">— Escoge un producto —</option>
-              {PRODUCTOS.map(p => <option key={p} value={p}>{p}</option>)}
-            </Select>
-          </Field>
-          <Field label="Kit de Anclaje">
-            <Select value={form.kit} onChange={set("kit")}>
-              <option value="">— Escoge una cubierta —</option>
-              <option>Cubierta 30</option><option>Cubierta 18</option>
-              <option>Metalroof</option><option>Otro</option>
-            </Select>
-          </Field>
-          <Field label="Cantidad de Kits">
-            <Input type="number" min="0" value={form.cantidad_kit} onChange={set("cantidad_kit")} />
-          </Field>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 // ─── OPTIMIZER TAB ────────────────────────────────────────────────────────────
 function OptimizerTab({ form, nextOrden, onOrdenSaved }) {
@@ -268,7 +73,7 @@ function OptimizerTab({ form, nextOrden, onOrdenSaved }) {
     .map(r => ({ longitud: parseInt(r.longitud), cantidad: parseInt(r.cantidad) }));
 
   const handleOptimize = async () => {
-    if (!validCortes.length) { setToast({ message: "Ingresa al menos un corte válido.", type: "warning" }); return; }
+    if (!validCortes.length) { setToast({ message: "Ingresa al menos un corte válido.", type: "-warning" }); return; }
     setLoading(true); setResult(null); setSaved(false);
     try {
       const res = await fetch(`${API_BASE}/optimizar`, {
@@ -277,17 +82,17 @@ function OptimizerTab({ form, nextOrden, onOrdenSaved }) {
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       setResult(await res.json());
-      setToast({ message: "Optimización completada con éxito.", type: "success" });
+      setToast({ message: "Optimización completada con éxito.", type: "-success" });
     } catch (e) {
-      setToast({ message: `Error: ${e.message}. ¿Está corriendo el backend en ${API_BASE}?`, type: "error" });
+      setToast({ message: `Error: ${e.message}. ¿Está corriendo el backend en ${API_BASE}?`, type: "-error" });
     } finally {
       setLoading(false);
     }
   };
 
   const handleSaveAndDownload = async () => {
-    if (!form.cliente || !form.nit) { setToast({ message: "Completa el nombre del cliente y NIT.", type: "warning" }); return; }
-    if (form.transporte === "Kingspan" && !form.servicio_logistico) { setToast({ message: "Selecciona el servicio logístico.", type: "warning" }); return; }
+    if (!form.cliente || !form.nit) { setToast({ message: "Completa el nombre del cliente y NIT.", type: "-warning" }); return; }
+    if (form.transporte === "Kingspan" && !form.servicio_logistico) { setToast({ message: "Selecciona el servicio logístico.", type: "-warning" }); return; }
     try {
       const payload = { ...form, n_orden: nextOrden, servicio_logistico_tabla: logistica };
       const res = await fetch(`${API_BASE}/guardar_pedido`, {
@@ -297,7 +102,7 @@ function OptimizerTab({ form, nextOrden, onOrdenSaved }) {
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       setSaved(true);
       onOrdenSaved();
-      setToast({ message: `Orden #${String(nextOrden).padStart(4,"0")} guardada.`, type: "success" });
+      setToast({ message: `Orden #${String(nextOrden).padStart(4,"0")} guardada.`, type: "-success" });
       // Download PDF
       const pdfRes = await fetch(`${API_BASE}/generar_pdf`, {
         method: "POST", headers: { "Content-Type": "application/json" },
@@ -311,7 +116,7 @@ function OptimizerTab({ form, nextOrden, onOrdenSaved }) {
         URL.revokeObjectURL(url);
       }
     } catch (e) {
-      setToast({ message: `Error al guardar: ${e.message}`, type: "error" });
+      setToast({ message: `Error al guardar: ${e.message}`, type: "-error" });
     }
   };
 
@@ -544,9 +349,9 @@ function HistoryTab() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a"); a.href = url; a.download = `Orden_${regenId}.pdf`; a.click();
       URL.revokeObjectURL(url);
-      setToast({ message: `PDF de la orden #${regenId} descargado.`, type: "success" });
+      setToast({ message: `PDF de la orden #${regenId} descargado.`, type: "-success" });
     } catch (e) {
-      setToast({ message: `Error: ${e.message}`, type: "error" });
+      setToast({ message: `Error: ${e.message}`, type: "-error" });
     }
   };
 
