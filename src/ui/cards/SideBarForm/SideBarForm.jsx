@@ -17,21 +17,19 @@ const PRODUCTOS = [
   "KINGFRIGO PIR40 CAL28-9002/CAL28-9002","KINGROOF PIR30 CAL28-9002/CAL28-9002",
   "KINGROOF PIR18 CAL28-9002/CAL28-9002","KINGROOF PIR15 CAL28-9002/CAL28-9002",
 ];
+
 export default function SidebarForm({ form, setForm, nextOrden }) {
   const set = (k) => (e) => setForm(f => ({ ...f, [k]: e.target.value }));
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 20, padding: "0 0 24px" }}>
+    <div className="sidebar-form">
       {/* Orden info */}
       <FormSection title={"Información de la Orden"}>
         <Field label="Fecha de Despiece">
             <Input type="date" value={form.f_despiece} onChange={set("f_despiece")} />
           </Field>
           <Field label="N° de Orden">
-            <div style={{
-              background: "var(--blue)", color: "#fff", borderRadius: 6, padding: "8px 11px",
-              fontSize: 13, fontWeight: 700, letterSpacing: "0.05em"
-            }}>
+            <div className="order-number">
               #{String(nextOrden).padStart(4, "0")}
             </div>
           </Field>
