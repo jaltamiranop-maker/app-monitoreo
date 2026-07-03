@@ -1,4 +1,7 @@
-.input{
+.input {
+    width: 100%;
+    box-sizing: border-box;
+
     background: var(--input-bg);
     border: 1.5px solid var(--border);
     border-radius: 6px;
@@ -8,12 +11,9 @@
     font-size: 13px;
 
     outline: none;
-
     transition: border-color .15s;
 }
 
-.input:focus{
-
+.input:focus {
     border-color: var(--blue);
-
 }

@@ -1,0 +1,76 @@
+.inventory-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+}
+
+.inventory-panels {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.inventory-panel {
+    background: var(--input-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 10px;
+    text-align: center;
+}
+
+.inventory-panel.active {
+    background: var(--blue);
+    border-color: var(--blue);
+}
+
+.inventory-qty {
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--text-muted);
+}
+
+.inventory-panel.active .inventory-qty {
+    color: white;
+}
+
+.inventory-size {
+    margin-top: 2px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .06em;
+    color: var(--text-muted);
+}
+
+.inventory-panel.active .inventory-size {
+    color: rgba(255,255,255,.8);
+}
+
+.inventory-metrics {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+}
+
+.inventory-metric {
+    background: var(--input-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+}
+
+.inventory-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .07em;
+    color: var(--text-muted);
+}
+
+.inventory-value {
+    margin-top: 2px;
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--blue);
+}

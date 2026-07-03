@@ -75,7 +75,7 @@ export default function CortesInput({
                         </Field>
 
                         <button
-                            className="card remove-button"
+                            className="remove-button"
                             onClick={() => removeRow(i)}
                             disabled={rows.length === 1}
                         >

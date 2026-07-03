@@ -1,5 +1,7 @@
 .select{
 
+    width: 100%;
+    box-sizing: border-box;
     background: var(--input-bg);
     color: var(--text);
 
