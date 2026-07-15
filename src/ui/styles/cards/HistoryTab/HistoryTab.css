@@ -1,0 +1,111 @@
+.history-tab{
+    display: flex; 
+    flex-direction: column; 
+    gap: 20px;
+}
+
+.history-tab-panel{
+    background: var(--card); 
+    border: 1px solid var(--border); 
+    border-radius: 12px; 
+    padding: 20px;
+}
+
+.history-tab-loading{
+    text-align: center; 
+    padding: 32px; 
+    color: var(--text-muted);
+}
+
+.history-tab-loading-noresults{
+    font-size: 32px; 
+    margin-bottom: 8px; 
+}
+
+.history-tab-info{
+    overflow-x: auto;
+}
+
+.history-tab-info table{
+
+    width: 100%; 
+    border-collapse: collapse; 
+    font-size: 12px;
+
+}
+
+.history-tab-info-banner{
+    background: var(--blue);
+}
+
+.history-tab-info-th{
+    padding: 8px 14px; color: #fff; 
+    font-weight: 700; 
+    text-align: left; 
+    font-size: 11px; 
+    letter-spacing: 0.05em
+}
+
+.history-tab-info-tr{
+    border-bottom: 1px solid var(--border);
+    background: var(--input-bg)
+}
+
+.history-tab-info-tr.index{
+    background: transparent;
+}
+
+.history-tab-info table tbody tr td{
+    padding: 9px 14px;
+}
+
+.history-tab-info-order{
+    font-weight: 800; 
+    color: var(--blue);
+}
+
+.history-tab-info-date{
+    color: var(--text-muted);
+}
+
+.history-tab-info-client{
+    font-weight: 600; 
+    
+}
+
+.history-tab-info-product{
+    font-size: 11px;
+    color: var(--text-muted);
+}
+
+.history-tab-download{
+    display: flex; 
+    gap: 10px; 
+    align-items: flex-end;
+}
+
+.history-tab-select-order{
+    min-width: 160px;
+}
+
+.history-tab-download-button{
+    background: var(--border); 
+    color: var(--text-muted);
+    border: none;
+    border-radius: 8px; 
+    padding: 9px 18px; 
+    font-size: 12px; 
+    font-weight: 700;
+    cursor: not-allowed; 
+    display: flex;
+    align-items: center; 
+    gap: 8px;
+    margin-bottom: 1;
+}
+
+.history-tab-download-button.regenId{
+    background: var(--blue);
+    color: #fff;
+    cursor: pointer;
+}
+

@@ -10,6 +10,8 @@ import PanelBar from "./cards/PanelBar";
 import SidebarForm from "./cards/SideBarForm/SideBarForm";
 // ─── OPTIMIZER TAB ────────────────────────────────────────────────────────────
 import OptimizerTab from "./cards//OptimizerTab/OptimizerTab";
+// ─── HISTORY TAB ────────────────────────────────────────────────────────────
+import HistoryTab from "./cards/HistoryTab/HistoryTab";
 // ─── CONSTANTS ───────────────────────────────────────────────────────────────
 const API_BASE = "http://127.0.0.1:8000";
 
@@ -39,103 +41,8 @@ const IconDownload = () => (
 );
 
 
-
-
-
 // ─── HISTORY TAB ──────────────────────────────────────────────────────────────
-function HistoryTab() {
-  const [history, setHistory] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [regenId, setRegenId] = useState("");
-  const [toast, setToast] = useState(null);
 
-  const fetchHistory = async () => {
-    setLoading(true);
-    try {
-      const res = await fetch(`${API_BASE}/historial`);
-      if (res.ok) setHistory(await res.json());
-    } catch {}
-    setLoading(false);
-  };
-
-  useEffect(() => { fetchHistory(); }, []);
-
-  const handleRegen = async () => {
-    if (!regenId) return;
-    try {
-      const res = await fetch(`${API_BASE}/regenerar_pdf/${regenId}`, { method: "POST" });
-      if (!res.ok) throw new Error("No encontrado");
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a"); a.href = url; a.download = `Orden_${regenId}.pdf`; a.click();
-      URL.revokeObjectURL(url);
-      setToast({ message: `PDF de la orden #${regenId} descargado.`, type: "-success" });
-    } catch (e) {
-      setToast({ message: `Error: ${e.message}`, type: "-error" });
-    }
-  };
-
-  return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-      <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 12, padding: 20 }}>
-        <SectionHeader>Historial de Órdenes</SectionHeader>
-        {loading ? (
-          <div style={{ textAlign: "center", padding: 32, color: "var(--text-muted)" }}>Cargando historial...</div>
-        ) : history.length === 0 ? (
-          <div style={{ textAlign: "center", padding: 32, color: "var(--text-muted)" }}>
-            <div style={{ fontSize: 32, marginBottom: 8 }}>📋</div>
-            No hay órdenes registradas.
-          </div>
-        ) : (
-          <div style={{ overflowX: "auto" }}>
-            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
-              <thead>
-                <tr style={{ background: "var(--blue)" }}>
-                  {["N° Orden","Fecha Registro","Cliente","Producto"].map(h => (
-                    <th key={h} style={{ padding: "8px 14px", color: "#fff", fontWeight: 700, textAlign: "left", fontSize: 11, letterSpacing: "0.05em" }}>{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {history.map((row, i) => (
-                  <tr key={i} style={{ borderBottom: "1px solid var(--border)", background: i % 2 === 0 ? "transparent" : "var(--input-bg)" }}>
-                    <td style={{ padding: "9px 14px", fontWeight: 800, color: "var(--blue)" }}>#{String(row["N° Orden"]).padStart(4,"0")}</td>
-                    <td style={{ padding: "9px 14px", color: "var(--text-muted)" }}>{row["Fecha Registro"]}</td>
-                    <td style={{ padding: "9px 14px", fontWeight: 600 }}>{row["Cliente"]}</td>
-                    <td style={{ padding: "9px 14px", fontSize: 11, color: "var(--text-muted)" }}>{row["Producto"]}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
-
-      <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 12, padding: 20 }}>
-        <SectionHeader>Re-descargar Orden</SectionHeader>
-        <div style={{ display: "flex", gap: 10, alignItems: "flex-end" }}>
-          <Field label="N° de Orden a recuperar">
-            <Select value={regenId} onChange={e => setRegenId(e.target.value)} style={{ minWidth: 160 }}>
-              <option value="">— Selecciona —</option>
-              {history.map(r => (
-                <option key={r["N° Orden"]} value={r["N° Orden"]}>#{String(r["N° Orden"]).padStart(4,"0")} — {r["Cliente"]}</option>
-              ))}
-            </Select>
-          </Field>
-          <button onClick={handleRegen} disabled={!regenId} style={{
-            background: regenId ? "var(--blue)" : "var(--border)", color: regenId ? "#fff" : "var(--text-muted)",
-            border: "none", borderRadius: 8, padding: "9px 18px", fontSize: 12, fontWeight: 700,
-            cursor: regenId ? "pointer" : "not-allowed", display: "flex", alignItems: "center", gap: 8,
-            marginBottom: 1
-          }}>
-            <IconDownload /> Generar PDF
-          </button>
-        </div>
-      </div>
-      {toast && <Toast {...toast} onClose={() => setToast(null)} />}
-    </div>
-  );
-}
 
 // ─── APP ROOT ─────────────────────────────────────────────────────────────────
 export default function App() {
