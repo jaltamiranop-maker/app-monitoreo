@@ -1,0 +1,12 @@
+:root {
+          --blue: #003B8E;
+          --gold: #C5A028;
+          --bg: #F4F6FA;
+          --card: #FFFFFF;
+          --border: #E2E8F0;
+          --text: #1A202C;
+          --text-muted: #718096;
+          --input-bg: #F7F9FC;
+          --sidebar-w: 280px;
+          --accent: #C5A028;
+        }

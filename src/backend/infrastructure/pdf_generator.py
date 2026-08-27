@@ -23,7 +23,7 @@ BLANCO = colors.white
 # Ancho útil de la página carta con márgenes de 15pt a cada lado
 MARGEN = 15
 ANCHO_UTIL = letter[0] - 2 * MARGEN  # 582pt
-ANCHO = 580  # margen de seguridad de 2pt
+ANCHO = 550  # margen de seguridad de 2pt
 
 
 # ── ESTILOS ──────────────────────────────────────────────────────────────────
@@ -100,6 +100,7 @@ def generar_pdf(info: dict, data_tabla: list) -> BytesIO:
     )
 
     titulo_style = _titulo_style()
+    subtitulo_style = _subtitulo_style()
     elements = []
 
     # ── HEADER ───────────────────────────────────────────────────────────────
@@ -130,7 +131,7 @@ def generar_pdf(info: dict, data_tabla: list) -> BytesIO:
         ["Tipo de Destino:", info.get("tipo_destino", ""), "Tipo de Obra:", info.get("mercado", "")],
         ["Ubicación Proyecto:", info.get("ciudad", ""), "Tipo de Proyecto:", "NUEVA CONSTRUCCIÓN"],
         ["Dirección Entrega:", info.get("direccion", ""), "Transporte a Cargo de:", info.get("transporte", "")],
-        ["Fecha compromiso entrega en Planta:", info.get("f_entrega", ""), "", ""],
+        ["Entrega en Planta:", info.get("f_entrega", ""), "", ""],
     ]
 
     col_cliente = [ANCHO * 0.21, ANCHO * 0.29, ANCHO * 0.21, ANCHO * 0.29]
@@ -158,15 +159,17 @@ def generar_pdf(info: dict, data_tabla: list) -> BytesIO:
     cortes_por_fila = []
     area_total = 0
     total_unidades = 0
+    total_deserdicio = 0
     for fila in data_tabla:
         cortes = [int(x.strip()) for x in str(fila["Cortes"]).split(",")]
         cortes_por_fila.append(cortes)
         area_total += sum(cortes) / 1000
+        total_deserdicio += fila["Desperdicio"] / 1000
         total_unidades += len(cortes)
 
     # ── RESUMEN SUPERIOR ──────────────────────────────────────────────────────
     tipo_producto = Table(
-        [[Paragraph("<b>TIPO DE PRODUCTO</b><br/><br/><b>PANEL</b>", titulo_style)]],
+        [[Paragraph("<b>TIPO DE PRODUCTO</b><br/><br/><b>PANEL</b>", subtitulo_style)]],
         colWidths=[ANCHO * 0.19], rowHeights=[60],
     )
     tipo_producto.setStyle(TableStyle([
@@ -190,34 +193,10 @@ def generar_pdf(info: dict, data_tabla: list) -> BytesIO:
         ("ALIGN", (0, 0), (-1, -1), "CENTER"),
         ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
     ]))
-
-    resumen_box = Table(
-        [
-            ["RESUMEN", ""],
-            ["Área Requerida:", f"{area_total:.2f} m²"],
-            ["Área Suministrada:", f"{area_total:.2f} m²"],
-            ["Desperdicio Total:", "0.00 m²"],
-        ],
-        colWidths=[ANCHO * 0.19, ANCHO * 0.19],
-    )
-    resumen_box.setStyle(TableStyle([
-        ("SPAN", (0, 0), (1, 0)),
-        ("BACKGROUND", (0, 0), (-1, 0), AZUL),
-        ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
-        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
-        ("FONTNAME", (0, 1), (0, -1), "Helvetica-Bold"),
-        ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, GRIS_CLARO]),
-        ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
-        ("FONTSIZE", (0, 0), (-1, -1), 9),
-        ("ALIGN", (0, 0), (0, -1), "LEFT"),
-        ("ALIGN", (1, 0), (1, -1), "RIGHT"),
-        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-        ("LEFTPADDING", (0, 0), (-1, -1), 8),
-        ("RIGHTPADDING", (0, 0), (-1, -1), 8),
-    ]))
+    
 
     resumen_superior = Table(
-        [[tipo_producto, longitud_tbl, resumen_box]],
+        [[tipo_producto, longitud_tbl]],
         colWidths=[ANCHO * 0.19, ANCHO * 0.44, ANCHO * 0.37],
     )
     resumen_superior.setStyle(TableStyle([("VALIGN", (0, 0), (-1, -1), "TOP")]))
@@ -229,17 +208,38 @@ def generar_pdf(info: dict, data_tabla: list) -> BytesIO:
         ["CORTE", "", "", ""],
         ["Corte", "Unidades", "Requerido (m²)", "Suministrado (m²)"],
     ]
+    #AGRUPACION DE CORTES──────────────────────────────────────────────────────
+
+    conteo = {
+        "cortes": [],
+        "cantidad": []
+    }
+
     for cortes in cortes_por_fila:
+        
         for corte in cortes:
-            cortes_data.append([
-                f"{corte} mm", "1",
-                f"{corte / 1000:.2f} m²", f"{corte / 1000:.2f} m²",
-            ])
-    n_filas_corte = len(cortes_data) - 2
+            if corte in conteo["cortes"]:
+                indice = conteo["cortes"].index(corte)
+                conteo["cantidad"][indice] += 1
+            else:
+                conteo["cortes"].append(corte)
+                conteo["cantidad"].append(1)
+
+    #TABLA DE CANTIDAD DE CORTES──────────────────────────────────────────────────────
+    for index, cortes in enumerate(conteo["cortes"]):
+        cortes_data.append([
+            f"{cortes} mm", f"{conteo['cantidad'][index]}",
+            f"{corte / 1000:.2f} m²", f"{corte / 1000:.2f} m²",
+    
+        ])
+            
+
     cortes_data.append(["TOTAL", str(total_unidades), f"{area_total:.2f} m²", f"{area_total:.2f} m²"])
 
-    w_corte = [ANCHO * 0.095, ANCHO * 0.075, ANCHO * 0.09, ANCHO * 0.09]
+    w_corte = [ANCHO * 0.1, ANCHO * 0.095, ANCHO * 0.12, ANCHO * 0.12]
+
     tabla_cortes = Table(cortes_data, colWidths=w_corte)
+    
     estilo_corte = [
         ("SPAN", (0, 0), (-1, 0)),
         ("BACKGROUND", (0, 0), (-1, 1), AZUL),
@@ -256,19 +256,16 @@ def generar_pdf(info: dict, data_tabla: list) -> BytesIO:
     ]
     tabla_cortes.setStyle(TableStyle(estilo_corte))
 
-    # ── TABLA DESPERDICIO ────────────────────────────────────────────────────
-    desperdicio_t = Table(
-        [
-            ["DESPERDICIO", "", ""],
-            ["Longitud", "Unidades", "m²"],
-            ["0 mm", "0", "0.00"],
-            ["0 mm", "0", "0.00"],
-            ["TOTAL", "0", "0.00"],
-        ],
-        colWidths=[ANCHO * 0.083, ANCHO * 0.06, ANCHO * 0.06],
-    )
-    desperdicio_t.setStyle(TableStyle([
+    #DATOS DE DESPERDICIO ────────────────────────────────────────────────────
+    
+    desperdicio_texto = [
+            ["DESPERDICIO", "", "","",""],
+            ["Longitud", "Cortes", "Unidades", "Cantidad", "Sobrante"],
+        ]
+
+    desperdicio_style = [
         ("SPAN", (0, 0), (-1, 0)),
+        ("SPAN", (0, -1), (-2, -1)),
         ("BACKGROUND", (0, 0), (-1, 1), AZUL),
         ("TEXTCOLOR", (0, 0), (-1, 1), colors.white),
         ("FONTNAME", (0, 0), (-1, 1), "Helvetica-Bold"),
@@ -279,40 +276,120 @@ def generar_pdf(info: dict, data_tabla: list) -> BytesIO:
         ("ALIGN", (0, 0), (-1, -1), "CENTER"),
         ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
         ("FONTSIZE", (0, 0), (-1, -1), 8),
-    ]))
 
-    # ── TABLA DISTRIBUCIÓN DE PANELES (incluye columna Corte 2) ──────────────
-    LARGO_STOCK = 12000
-    distribucion = [
-        ["DISTRIBUCIÓN DE PANELES", "", "", "", ""],
-        ["Panel", "Tamaño\n(mm)", "Corte 1\n(mm)", "Corte 2\n(mm)", "Desperdicio\n(mm)"],
     ]
-    contador = 1
-    for cortes in cortes_por_fila:
-        for corte in cortes:
-            distribucion.append([
-                str(contador), str(LARGO_STOCK), str(corte), "-", str(LARGO_STOCK - corte),
-            ])
-            contador += 1
 
-    w_dist = [ANCHO * 0.032, ANCHO * 0.052, ANCHO * 0.052, ANCHO * 0.052, ANCHO * 0.062]
-    tabla_distribucion = Table(distribucion, colWidths=w_dist)
-    tabla_distribucion.setStyle(TableStyle([
-        ("SPAN", (0, 0), (-1, 0)),
-        ("BACKGROUND", (0, 0), (-1, 1), AZUL),
-        ("TEXTCOLOR", (0, 0), (-1, 1), colors.white),
-        ("FONTNAME", (0, 0), (-1, 1), "Helvetica-Bold"),
-        ("GRID", (0, 0), (-1, -1), 0.5, colors.black),
-        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
-        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-        ("FONTSIZE", (0, 0), (-1, -1), 7.5),
-    ]))
+    datos_desperdicio = {
+        "Tamaño": [],
+        "Cortes": [],
+        "Cantidad": [],
+        "Sobrante": []
+    }
+
+    """
+    AGRUACION DE TAMAÑOS / CORTES Y DESERDICIOS ────────────────────────────────────────────────────
+    DESCRICION:
+
+    Muestra los tamaños de los paneles a cortar, con sus respectivos cortes
+    y su deseperdicio
+     
+     """
+    for datos in data_tabla:
+        lista_cortes = [datos["Cortes"]]
+        if datos["Tamaño"] in datos_desperdicio["Tamaño"] and lista_cortes in datos_desperdicio["Cortes"]:
+            indice = datos_desperdicio["Cortes"].index(lista_cortes)
+            datos_desperdicio["Cantidad"][indice] += 1
+
+        else:
+            datos_desperdicio["Tamaño"].append(datos["Tamaño"])
+            datos_desperdicio["Cortes"].append([datos["Cortes"]])
+            datos_desperdicio["Cantidad"].append(1)
+            datos_desperdicio["Sobrante"].append(datos["Desperdicio"])
+
+
+    """
+        CREACION DE TABLA DE DESPERDICIO ────────────────────────────────────────────────────
+        DESCRICION:
+
+        Crea filas de los cortes de los paneles y su desperdicio
+        y junta columnas para mejor comprencion de la tabla
+
+        desperdicio_style.extend([("SPAN", (0, columna), (0, columna + movimiento)),
+                                ("SPAN", (3, columna), (3, columna + movimiento))])
+
+         """
+    columna = 1
+    union = False
+    movimiento = 0
+    for i in range(len(datos_desperdicio["Tamaño"])):
+        cortes = datos_desperdicio["Cortes"][i][0].split(", ")
+        cantidad = 1
+
+        
+        for index_corte in range(len(cortes)):
+            if index_corte < len(cortes) - 1:
+
+                if cortes[index_corte] == cortes[index_corte + 1]:
+                    cantidad += 1
+                    
+                    
+                    
+
+                else:
+                    movimiento += 1
+                    union = True
+                    desperdicio_texto.append([
+                        datos_desperdicio["Tamaño"][i],
+                        cortes[index_corte],
+                        cantidad,
+                        datos_desperdicio["Cantidad"][i],
+                        datos_desperdicio["Sobrante"][i]
+                    ])
+
+                    cantidad = 1
+
+                
+            
+            else:
+                columna += 1
+            
+                desperdicio_texto.append([
+                             datos_desperdicio["Tamaño"][i],
+                             cortes[index_corte],
+                             cantidad,
+                             datos_desperdicio["Cantidad"][i],
+                             datos_desperdicio["Sobrante"][i]
+                        ])
+        if union == True:
+            desperdicio_style.extend([("SPAN", (0, columna), (0, columna + movimiento)),
+                                                    ("SPAN", (3, columna), (3, columna + movimiento))])
+            columna += movimiento
+            movimiento = 0
+            union = False
+                
+                
+                
+
+
+
+    
+
+    desperdicio_texto.append(["TOTAL","","","",f"{total_deserdicio:.2f} m²"])
+
+    # ── TABLA DESPERDICIO ────────────────────────────────────────────────────
+    desperdicio_t = Table(
+            desperdicio_texto,
+            colWidths=[ANCHO * 0.12, ANCHO * 0.075, ANCHO * 0.075],
+        )
+
+    desperdicio_t.setStyle(TableStyle(desperdicio_style))
 
     centro = Table(
-        [[tabla_cortes, desperdicio_t, tabla_distribucion]],
-        colWidths=[ANCHO * 0.35, ANCHO * 0.203, ANCHO * 0.25],
+        [[tabla_cortes, desperdicio_t]],
+        colWidths=[ANCHO * 0.45, ANCHO * 0.40],
+        
     )
-    centro.setStyle(TableStyle([("VALIGN", (0, 0), (-1, -1), "TOP")]))
+    centro.setStyle(TableStyle([("VALIGN", (0, 0), (-1, -1), "TOP"), ("ALIGN", (0, 0), (-1, -1), "LEFT"),]))
     elements.append(centro)
     elements.append(Spacer(1, 6))
 

@@ -17,6 +17,7 @@ def iniciar_db():
             resultado_optimizacion TEXT
         )
     ''')
+
     conn.commit()
     conn.close()
 

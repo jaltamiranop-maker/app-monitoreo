@@ -15,6 +15,13 @@ import HistoryTab from "./cards/HistoryTab/HistoryTab";
 // ─── CONSTANTS ───────────────────────────────────────────────────────────────
 const API_BASE = "http://127.0.0.1:8000";
 
+// ─── STYLES ───────────────────────────────────────────────────────────────
+import "./styles/variables.css"
+import "./styles/globals.css"
+import "./styles/animations.css"
+import "./styles/aplication/App.css"
+
+
 
 const today = () => new Date().toISOString().split("T")[0];
 
@@ -34,14 +41,6 @@ const IconHistory = () => (
     <polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.95"/>
   </svg>
 );
-const IconDownload = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
-  </svg>
-);
-
-
-// ─── HISTORY TAB ──────────────────────────────────────────────────────────────
 
 
 // ─── APP ROOT ─────────────────────────────────────────────────────────────────
@@ -65,82 +64,38 @@ export default function App() {
 
   return (
     <>
-      <style>{`
-        :root {
-          --blue: #003B8E;
-          --gold: #C5A028;
-          --bg: #F4F6FA;
-          --card: #FFFFFF;
-          --border: #E2E8F0;
-          --text: #1A202C;
-          --text-muted: #718096;
-          --input-bg: #F7F9FC;
-          --sidebar-w: 280px;
-          --accent: #C5A028;
-        }
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        @keyframes slideUp { from { transform: translateY(16px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-        input[type=number] { -moz-appearance: textfield; }
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
-      `}</style>
-
+      
       {/* TOP NAV */}
-      <header style={{
-        background: "var(--blue)", color: "#fff", padding: "0 24px",
-        display: "flex", alignItems: "center", justifyContent: "space-between",
-        height: 56, position: "sticky", top: 0, zIndex: 100,
-        boxShadow: "0 2px 16px rgba(0,59,142,0.25)"
-      }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-          <button onClick={() => setSidebarOpen(o => !o)} style={{
-            background: "rgba(255,255,255,0.12)", border: "none", borderRadius: 6,
-            color: "#fff", cursor: "pointer", padding: "6px 8px", lineHeight: 0
-          }}>
+      <header className="top-nav">
+        <div className="top-nav-section-left">
+          <button onClick={() => setSidebarOpen(o => !o)} className="top-nav-button-form">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
           </button>
           <div>
-            <div style={{ fontWeight: 800, fontSize: 15, letterSpacing: "0.03em" }}>KINGSPAN</div>
-            <div style={{ fontSize: 10, color: "rgba(255,255,255,0.65)", fontWeight: 500, letterSpacing: "0.08em", textTransform: "uppercase" }}>Optimizador de Cortes</div>
+            <div  className="top-nav-name-company">KINGSPAN</div>
+            <div className="top-nav-text-optmizer">Optimizador de Cortes</div>
           </div>
         </div>
         <div style={{ display: "flex", gap: 4 }}>
           {[["optimizer","🚀 Optimizador", <IconCut />],["history","📜 Historial", <IconHistory />]].map(([id, label, icon]) => (
-            <button key={id} onClick={() => setTab(id)} style={{
-              background: tab === id ? "rgba(255,255,255,0.18)" : "transparent",
-              color: "#fff", border: tab === id ? "1px solid rgba(255,255,255,0.35)" : "1px solid transparent",
-              borderRadius: 7, padding: "6px 16px", cursor: "pointer", fontSize: 12, fontWeight: 700,
-              letterSpacing: "0.03em", transition: "all 0.15s", display: "flex", alignItems: "center", gap: 7
-            }}>
+            <button key={id} onClick={() => setTab(id)} className={`top-nav-button-optimizer-historial ${ tab === id ? "active" : ""}`}>
               {icon} {label.split(" ").slice(1).join(" ")}
             </button>
           ))}
         </div>
-        <div style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", letterSpacing: "0.05em" }}>
+        <div className="top-nav-text-copyright">
           © 2026 Kingspan Optimization Tools
         </div>
       </header>
 
-      <div style={{ display: "flex", minHeight: "calc(100vh - 56px)" }}>
+      <div className="sidebar">
         {/* SIDEBAR */}
-        <aside style={{
-          width: sidebarOpen ? "var(--sidebar-w)" : 0, minWidth: sidebarOpen ? "var(--sidebar-w)" : 0,
-          background: "var(--card)", borderRight: "1px solid var(--border)",
-          overflowY: "auto", overflowX: "hidden",
-          transition: "width 0.25s ease, min-width 0.25s ease",
-          flexShrink: 0
-        }}>
-          <div style={{ width: "var(--sidebar-w)", padding: "20px 16px 0" }}>
-            <div style={{
-              background: "var(--blue)", borderRadius: 8, padding: "10px 14px",
-              marginBottom: 18, display: "flex", alignItems: "center", justifyContent: "space-between"
-            }}>
-              <span style={{ color: "rgba(255,255,255,0.8)", fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase" }}>Datos de Producción</span>
-              <span style={{ background: "var(--gold)", color: "#fff", borderRadius: 4, padding: "2px 8px", fontSize: 10, fontWeight: 800 }}>
+        <aside className={`sidebar-aside ${ sidebarOpen ? "open" : ""}`}
+        >
+          <div className="sidebar-container-box">
+            <div className="sidebar-info-production">
+              <span className="sidebar-info-production-text">Datos de Producción</span>
+              <span className="sidebar-info-production-num">
                 #{String(nextOrden).padStart(4, "0")}
               </span>
             </div>
@@ -149,7 +104,7 @@ export default function App() {
         </aside>
 
         {/* MAIN */}
-        <main style={{ flex: 1, padding: 24, overflowX: "hidden" }}>
+        <main className="main">
           {tab === "optimizer" && <OptimizerTab form={form} nextOrden={nextOrden} onOrdenSaved={handleOrdenSaved} />}
           {tab === "history" && <HistoryTab />}
         </main>
