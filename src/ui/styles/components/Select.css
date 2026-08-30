@@ -1,0 +1,17 @@
+.select{
+
+    width: 100%;
+    box-sizing: border-box;
+    background: var(--input-bg);
+    color: var(--text);
+
+    border: 1.5px solid var(--border);
+    border-radius: 6; 
+
+    padding: 8px 11px;
+    
+    font-size: 13;
+    outline: none; 
+    cursor: pointer
+
+}

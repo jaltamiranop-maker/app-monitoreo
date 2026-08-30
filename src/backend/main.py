@@ -4,11 +4,11 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from typing import Any
 from optimizer import optimize_cutting, format_output
-from database import (
+from infrastructure.database import (
     iniciar_db, obtener_siguiente_orden, guardar_pedido,
     consultar_historial, obtener_detalle_pedido
 )
-from pdf_generator import generar_pdf
+from infrastructure.pdf_generator import generar_pdf
 import json
 
 app = FastAPI(title="Kingspan Optimizer API")

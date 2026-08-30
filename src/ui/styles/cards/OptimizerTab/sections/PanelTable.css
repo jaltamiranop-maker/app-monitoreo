@@ -1,0 +1,76 @@
+.panel-table-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+}
+
+.table-container {
+    overflow-x: auto;
+}
+
+.panel-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+}
+
+.panel-table thead tr {
+    background: var(--blue);
+}
+
+.panel-table th {
+    padding: 8px 12px;
+    color: white;
+    font-size: 11px;
+    font-weight: 700;
+    text-align: left;
+    letter-spacing: .05em;
+}
+
+.panel-table tbody tr {
+    border-bottom: 1px solid var(--border);
+}
+
+.panel-table tbody tr.alternate-row {
+    background: var(--input-bg);
+}
+
+.panel-table td {
+    padding: 8px 12px;
+}
+
+.panel-id {
+    font-weight: 700;
+    color: var(--blue);
+}
+
+.panel-size {
+    font-weight: 600;
+}
+
+.panel-cuts {
+    font-family: monospace;
+    font-size: 11px;
+    color: var(--text-muted);
+}
+
+.panelTable-bar {
+    min-width: 160px;
+}
+
+.waste {
+    font-weight: 600;
+}
+
+.waste.low {
+    color: #16a34a;
+}
+
+.waste.medium {
+    color: #d97706;
+}
+
+.waste.high {
+    color: #dc2626;
+}

@@ -1,0 +1,138 @@
+.top-nav{
+    background: var(--blue); 
+    color: #fff; 
+    padding: 0 24px;
+    display: flex; 
+    align-items: center; 
+    justify-content: space-between;
+    height: 56px; 
+    position: sticky; 
+    top: 0; 
+    z-index: 100;
+    box-shadow: 0 2px 16px rgba(0,59,142,0.25);
+}
+
+.top-nav-section-left{
+    display: flex; 
+    align-items: center; 
+    gap: 16px;
+}
+
+.top-nav-button-form{
+    background: rgba(255,255,255,0.12); 
+    border: none; 
+    border-radius: 6px;
+    color: #fff; 
+    cursor: pointer; 
+    padding: 6px 8px; 
+    line-height: 0;
+}
+
+.top-nav-name-company{
+    font-weight: 800; 
+    font-size: 15px;
+    letter-spacing: 0.03em;
+}
+
+.top-nav-text-optmizer{
+    font-size: 10px; 
+    color: rgba(255,255,255,0.65); 
+    font-weight: 500px; 
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.top-nav-section-center{
+    display: flex; 
+    gap: 4px;
+}
+
+.top-nav-button-optimizer-historial{
+    background: transparent;
+    color: #fff; 
+    border:  1px solid transparent;
+    border-radius: 7px; 
+    padding: 6px 16px; 
+    cursor: pointer; 
+    font-size: 12px; 
+    font-weight: 700px;
+    letter-spacing: 0.03em; 
+    transition: all 0.15s; 
+    display: flex; 
+    align-items: center; 
+    gap: 7px;
+}
+
+.top-nav-button-optimizer-historial.active{
+    background: rgba(255,255,255,0.18);
+    border: 1px solid rgba(255,255,255,0.35);
+}
+
+.top-nav-text-copyright{
+    font-size: 11; 
+    color: rgba(255,255,255,0.5); 
+    letter-spacing: 0.05em;
+}
+
+.sidebar{
+    display: flex; 
+    min-height: calc(100vh - 56px)
+}
+
+.sidebar-aside{
+    width: 0; 
+    min-width: 0;
+    background: var(--card); 
+    border-right: 1px solid var(--border);
+    overflow: auto;
+    overflow: hidden;
+    transition: width 0.25s ease, min-width 0.25s ease;
+    flex-shrink: 0;
+}
+
+.sidebar-aside.open{
+    width: var(--sidebar-w); 
+    min-width: var(--sidebar-w);
+}
+
+.sidebar-container-box{
+    width: var(--sidebar-w); 
+    padding: 20px 16px 0;
+}
+
+.sidebar-info-production{
+    background: var(--blue); 
+    border-radius: 8px; 
+    padding: 10px 14px;
+    margin-bottom: 18px; 
+    display: flex; 
+    align-items: center; 
+    justify-content: space-between;
+}
+
+.sidebar-info-production-text{
+    color: rgba(255,255,255,0.8); 
+    font-size: 11px; 
+    font-weight: 700; 
+    letter-spacing: 0.08em; 
+    text-transform: uppercase;
+}
+
+.sidebar-info-production-num{
+    background: var(--gold); 
+    color: #fff; 
+    border-radius: 4px; 
+    padding: 2px 8px; 
+    font-size: 10px; 
+    font-weight: 800;
+}
+
+.main{
+    flex: 1; 
+    padding: 24; 
+    overflow: hidden;
+}
+
+
+
+

@@ -1,0 +1,13 @@
+.sectionHeader{
+
+
+    font-size: 15px;
+    font-weight: 800px; 
+    letter-spacing: "0.12em";
+    text-transform: "uppercase";
+    color: var(--blue); 
+    border-bottom: 2px solid var(--blue);
+    padding-bottom: 6px; 
+    margin-bottom: 12px
+
+}

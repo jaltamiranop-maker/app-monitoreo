@@ -1,0 +1,84 @@
+.card{
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 12px rgba(0,0,0,.06);
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.cut-list{
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 14px;
+}
+
+.cut-row{
+    display: grid;
+    grid-template-columns: 1fr 80px 36px;
+    gap: 6px;
+    align-items: end;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.remove-button{
+    background: none;
+    border: 1.5px solid var(--border);
+    border-radius: 6px;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 7px 6px;
+}
+
+.remove-button:disabled{
+    opacity: .3;
+    cursor: not-allowed;
+}
+
+.add-button{
+    width: 100%;
+    background: none; 
+    border: 1.5px dashed var(--border);
+    border-radius: 6px; 
+    color: var(--text-muted); 
+    cursor: pointer; 
+    padding: 7px;
+    font-size: 12px; 
+    font-weight: 600; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    gap: 6px;
+    margin-bottom: 16px
+
+}
+
+.optimize-button {
+    width: 100%;
+    background: var(--blue);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 11px;
+    font-size: 14px;
+    font-weight: 800;
+    cursor: pointer;
+    letter-spacing: 0.04em;
+    transition: background 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.optimize-button.loading {
+    background: #6b8fc7;
+    cursor: not-allowed;
+}
+
+.spinner{
+    animation: spin 1s linear infinite;
+}

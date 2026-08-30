@@ -1,0 +1,64 @@
+.optimizer-tab{
+    display: grid;
+    grid-template-columns: 320px 1fr; 
+    gap: 24; 
+    align-items: start;
+}
+.button{
+
+    display: flex; 
+    gap: 12
+
+}
+
+.save-button {
+    flex: 1;
+    background: var(--gold);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 12px 20px;
+    font-size: 13px;
+    font-weight: 800;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: background 0.2s;
+}
+
+.save-button.saved  {
+    background: #16a34a;
+    cursor: default;
+}
+
+.optimizer-result{
+    display: flex; 
+    flex-direction: column; 
+    gap: 20px;
+}
+
+.optimizer-card-result{
+    background: var(--card); 
+    border: 1.5px dashed var(--border); 
+    border-radius: 12px;
+    padding: 48px; 
+    text-align: center; 
+    color: var(--text-muted);
+}
+
+.optimizer-icon{
+    font-size: 40px; 
+    margin-bottom: 12px;
+}
+
+.optimizer-title{
+    font-size: 14px; 
+    font-weight: 600;
+}
+
+.optimizer-text{
+    font-size: 12px; 
+    margin-top: 6px;
+}
