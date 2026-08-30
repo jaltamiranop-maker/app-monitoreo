@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useHistory } from "../../../application/hooks/useHistory";
 //COMPONENST---------------------------------------------------------------------
 import SectionHeader from "../../components/SectionHeader";
 import Toast from "../../components/Toast";
@@ -8,7 +8,6 @@ import Select from "../../components/Select";
 
 import "../../styles/cards/HistoryTab/HistoryTab.css";
 
-const API_BASE = "http://127.0.0.1:8000";
 
 
 const IconDownload = () => (
@@ -19,36 +18,16 @@ const IconDownload = () => (
 
 
 export default function HistoryTab() {
-  const [history, setHistory] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [regenId, setRegenId] = useState("");
-  const [toast, setToast] = useState(null);
 
-  const fetchHistory = async () => {
-    setLoading(true);
-    try {
-      const res = await fetch(`${API_BASE}/historial`);
-      if (res.ok) setHistory(await res.json());
-    } catch {}
-    setLoading(false);
-  };
-
-  useEffect(() => { fetchHistory(); }, []);
-
-  const handleRegen = async () => {
-    if (!regenId) return;
-    try {
-      const res = await fetch(`${API_BASE}/regenerar_pdf/${regenId}`, { method: "POST" });
-      if (!res.ok) throw new Error("No encontrado");
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a"); a.href = url; a.download = `Orden_${regenId}.pdf`; a.click();
-      URL.revokeObjectURL(url);
-      setToast({ message: `PDF de la orden #${regenId} descargado.`, type: "-success" });
-    } catch (e) {
-      setToast({ message: `Error: ${e.message}`, type: "-error" });
-    }
-  };
+  const {
+    history,
+    loading,
+    regenId,
+    setRegenId,
+    toast,
+    setToast,
+    handleRegen,
+  } = useHistory();
 
   return (
     <div className="history-tab">

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useOptimizer } from "../../../application/hooks/useOptimizer";
 //CARDS LEFT---------------------------------------------------------------
 import PanelTable from "./sections/PanelTable";
 import CortesInput from "./sections/CortesInput";
@@ -9,14 +9,10 @@ import InventorySummary from "./sections/InventorySummary";
 
 //COMPONENST---------------------------------------------------------------------
 import Toast from "../../components/Toast";
-import Field from "../../components/Field";
-import Input from "../../components/Input";
-import PanelBar from "../PanelBar";
 
+//STILOS---------------------------------------------------------------------
 import "../../styles/cards/OptimizerTab/OptimizerTab.css"
 
-const API_BASE = "http://127.0.0.1:8000";
-const PANEL_SIZES = [12000, 9000, 6000, 3000];
 
 
 // ─── HELPERS ─────────────────────────────────────────────────────────────────
@@ -35,76 +31,25 @@ const IconCheck = () => (
 );
 
 export default function OptimizerTab({ form, nextOrden, onOrdenSaved }) {
-  const [rows, setRows] = useState([{ longitud: "", cantidad: "" }]);
-  const [result, setResult] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [toast, setToast] = useState(null);
-  const [logistica, setLogistica] = useState([
-    { Concepto: "SERVICIO LOGÍSTICO", Tipo: form.servicio_logistico || "", Cantidad: 1, Precio_COP: 2800000 },
-    { Concepto: "", Tipo: "", Cantidad: 0, Precio_COP: 0 },
-  ]);
-  const [saved, setSaved] = useState(false);
+  
+  const {
+    rows,
+    setRow,
+    addRow,
+    removeRow,
+    handleOptimize,
+    loading,
+    result,
+    summary,
+    totalArea,
+    logistica,
+    setLogistica,
+    handleSaveAndDownload,
+    saved,
+    toast,
 
-  const addRow = () => setRows(r => [...r, { longitud: "", cantidad: "" }]);
-  const removeRow = (i) => setRows(r => r.filter((_, idx) => idx !== i));
-  const setRow = (i, k, v) => setRows(r => r.map((row, idx) => idx === i ? { ...row, [k]: v } : row));
 
-  const validCortes = rows.filter(r => r.longitud > 0 && r.cantidad > 0)
-    .map(r => ({ longitud: parseInt(r.longitud), cantidad: parseInt(r.cantidad) }));
-
-  const handleOptimize = async () => {
-    if (!validCortes.length) { setToast({ message: "Ingresa al menos un corte válido.", type: "-warning" }); return; }
-    setLoading(true); setResult(null); setSaved(false);
-    try {
-      const res = await fetch(`${API_BASE}/optimizar`, {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ cortes: validCortes }),
-      });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      setResult(await res.json());
-      setToast({ message: "Optimización completada con éxito.", type: "-success" });
-    } catch (e) {
-      setToast({ message: `Error: ${e.message}. ¿Está corriendo el backend en ${API_BASE}?`, type: "-error" });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSaveAndDownload = async () => {
-    if (!form.cliente || !form.nit) { setToast({ message: "Completa el nombre del cliente y NIT.", type: "-warning" }); return; }
-    if (form.transporte === "Kingspan" && !form.servicio_logistico) { setToast({ message: "Selecciona el servicio logístico.", type: "-warning" }); return; }
-    try {
-      const payload = { ...form, n_orden: nextOrden, servicio_logistico_tabla: logistica };
-      const res = await fetch(`${API_BASE}/guardar_pedido`, {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ datos_pdf: payload, resultado: result }),
-      });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      setSaved(true);
-      onOrdenSaved();
-      setToast({ message: `Orden #${String(nextOrden).padStart(4,"0")} guardada.`, type: "-success" });
-      // Download PDF
-      const pdfRes = await fetch(`${API_BASE}/generar_pdf`, {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ datos_pdf: payload, resultado: result }),
-      });
-      if (pdfRes.ok) {
-        const blob = await pdfRes.blob();
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url; a.download = `Orden_${String(nextOrden).padStart(4,"0")}_${form.cliente}.pdf`; a.click();
-        URL.revokeObjectURL(url);
-      }
-    } catch (e) {
-      setToast({ message: `Error al guardar: ${e.message}`, type: "-error" });
-    }
-  };
-
-  // Summary
-  const summary = result ? PANEL_SIZES.map(s => ({ size: s, qty: result.filter(r => r.Tamaño === s).length })) : [];
-  const totalArea = result ? result.reduce((acc, row) => {
-    return acc + row.Cortes.split(",").reduce((s, c) => s + parseInt(c.trim()), 0);
-  }, 0) / 1000 : 0;
+  } = useOptimizer(form, nextOrden, onOrdenSaved);
 
   return (
     <div className="optimizer-tab">
