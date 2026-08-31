@@ -4,7 +4,6 @@ import PanelTable from "./sections/PanelTable";
 import CortesInput from "./sections/CortesInput";
 //CARDS RIGHT---------------------------------------------------------------
 import Logistica from "./sections/Logistica";
-import SectionHeader from "../../components/SectionHeader";
 import InventorySummary from "./sections/InventorySummary";
 
 //COMPONENST---------------------------------------------------------------------
@@ -47,6 +46,7 @@ export default function OptimizerTab({ form, nextOrden, onOrdenSaved }) {
     handleSaveAndDownload,
     saved,
     toast,
+    setToast
 
 
   } = useOptimizer(form, nextOrden, onOrdenSaved);

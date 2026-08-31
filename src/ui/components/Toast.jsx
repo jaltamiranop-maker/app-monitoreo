@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import "../styles/components/Toast.css";
 
 export default function Toast({ message, type, onClose }) {
+   
 
     useEffect(() => {
 

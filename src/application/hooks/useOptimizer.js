@@ -5,6 +5,7 @@ import {
     saveOrder, 
     generatePdf 
 } from "../services/optimizeService";
+import { validationsForm } from "../utils/validationsForm";
 
 export function useOptimizer(form, nextOrden, onOrdenSaved){
 
@@ -54,10 +55,9 @@ export function useOptimizer(form, nextOrden, onOrdenSaved){
   };
 
   const handleSaveAndDownload = async () => {
-    if (!form.cliente || !form.nit) { setToast({ message: "Completa el nombre del cliente y NIT.", type: "-warning" }); return; }
-    if (form.transporte === "Kingspan" && !form.servicio_logistico) { setToast({ message: "Selecciona el servicio logístico.", type: "-warning" }); return; }
     try {
-      const payload = { ...form, n_orden: nextOrden, servicio_logistico_tabla: logistica };
+      validationsForm(form);
+      const payload = { ...form.datos_form, n_orden: nextOrden, servicio_logistico_tabla: logistica };
       await saveOrder( payload , result);
       setSaved(true);
       onOrdenSaved();
@@ -74,7 +74,16 @@ export function useOptimizer(form, nextOrden, onOrdenSaved){
       URL.revokeObjectURL(url);
 
     } catch (error) {
-      setToast({ message: `Error al guardar: ${error.message}`, type: "-error" });
+
+      if (error.name === "ValidationError" )
+      {
+        setToast({ message: `${error.message}`, type: "-warning" });
+      }else{
+        console.log(error.message)
+        setToast({ message: `Error al guardar: ${error.message}`, type: "-error" });
+        
+      }
+      
     }
 
     
@@ -96,7 +105,8 @@ export function useOptimizer(form, nextOrden, onOrdenSaved){
     setLogistica,
     handleSaveAndDownload,
     saved,
-    toast
+    toast,
+    setToast
 }
 
 

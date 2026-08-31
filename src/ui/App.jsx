@@ -1,11 +1,4 @@
 import { useState, useEffect, useRef } from "react";
-// ─── COMPONENTS ───────────────────────────────────────────────────────────────
-import Field from "./components/Field";
-import Input from "./components/Input";
-import Select from "./components/Select";
-import SectionHeader from "./components/SectionHeader";
-import Toast from "./components/Toast";
-import PanelBar from "./cards/PanelBar";
 // ─── SIDEBAR FORM ─────────────────────────────────────────────────────────────
 import SidebarForm from "./cards/SideBarForm/SideBarForm";
 // ─── OPTIMIZER TAB ────────────────────────────────────────────────────────────
@@ -20,6 +13,8 @@ import "./styles/variables.css"
 import "./styles/globals.css"
 import "./styles/animations.css"
 import "./styles/aplication/App.css"
+// ─── CONTROLADORES ───────────────────────────────────────────────────────────────
+import { useOrder } from "../application/hooks/useOrder";
 
 
 
@@ -46,21 +41,31 @@ const IconHistory = () => (
 // ─── APP ROOT ─────────────────────────────────────────────────────────────────
 export default function App() {
   const [tab, setTab] = useState("optimizer");
-  const [nextOrden, setNextOrden] = useState(1);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [form, setForm] = useState({
+
+    datos_form: {
     f_despiece: today(), comercial: "", orden_compra: "",
     cliente: "", nit: "", contacto: "", telefono: "", correo: "",
     sector: "", mercado: "", canal: "", tipo_destino: "",
     transporte: "", servicio_logistico: "", ciudad: "",
     direccion: "", f_entrega: today(), producto: "", kit: "", cantidad_kit: 0,
+    },
+
+    texto_form: 
+    [ "fecha de despiece", "comercial asignado", "orden de compra",
+      "nombre del cliente", "nit", "contacto", "telefono", "correo", "sector",
+      "mercado final", "canal de venta", "tipo de destino", "transorte", "servicio logistico",
+      "ciudad", "direccion", "fecha de entrega", "producto", "kit", "cantidad de kits"
+    ]
+
+
   });
 
-  useEffect(() => {
-    fetch(`${API_BASE}/siguiente_orden`).then(r => r.ok ? r.json() : null).then(d => { if (d) setNextOrden(d.siguiente); }).catch(() => {});
-  }, []);
-
-  const handleOrdenSaved = () => setNextOrden(n => n + 1);
+  const {
+    nextOrden,
+    handleOrdenSaved
+  } = useOrder();
 
   return (
     <>
